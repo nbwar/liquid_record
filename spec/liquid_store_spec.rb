@@ -2,6 +2,10 @@ require 'spec_helper'
 
 describe LiquidRecord do
   let(:store) { LiquidRecord.new(:store) }
+  before do
+    LiquidRecord.class_variable_set :@@validators, Hash.new { |h,k| h[k] = [] }
+    LiquidRecord.class_variable_set :@@type_validators, Hash.new { |h,k| h[k] = Hash.new { |h,k| h[k] = [] } }
+  end
 
   describe 'class methods' do
     let!(:store1) { LiquidRecord.new(:store) }
@@ -61,12 +65,17 @@ describe LiquidRecord do
         store.name = 'short name'
         expect(store.valid?).to eq true
       end
+
+      it "should be invalid if their is a validation but the attribute is not set" do
+        event = LiquidRecord.new(:event)
+        expect(event.valid?).to eq false
+      end
     end
 
     context 'attributes and type validation' do
       before do
         LiquidRecord.validate :city, :store do |value|
-          value.length > 3
+          value.length >= 3
         end
       end
 
@@ -81,6 +90,13 @@ describe LiquidRecord do
         event = LiquidRecord.new(:event)
         event.city = 'AB'
         expect(event.valid?).to eq true
+      end
+
+      it "should be invalid if their is a validation but the attribute is not set" do
+        store = LiquidRecord.new(:store)
+        expect(store.valid?).to eq false
+        store.city = 'San Francisco'
+        expect(store.valid?).to eq true
       end
     end
   end

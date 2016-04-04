@@ -28,16 +28,15 @@ class LiquidRecord
   end
 
   def self.valid? record
-    @@type_validators[record.type].each do |attr, validators|
+    @@validators.each do |attr, validators|
       validators.each do |validator|
-        next unless record.respond_to?(attr)
+        return false unless record.respond_to?(attr)
         return false unless validator.call(record.send(attr))
       end
     end
-
-    @@validators.each do |attr, validators|
+    @@type_validators[record.type].each do |attr, validators|
       validators.each do |validator|
-        next unless record.respond_to?(attr)
+        return false unless record.respond_to?(attr)
         return false unless validator.call(record.send(attr))
       end
     end
