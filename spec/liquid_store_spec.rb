@@ -124,8 +124,26 @@ describe LiquidRecord do
   end
 
   describe '#save' do
-    it "should return false" do
+    let!(:store) { LiquidRecord.new(:store) }
+    before do
+      LiquidRecord.validate :city, :store do |value|
+        value.length >= 3
+      end
+    end
+
+    it "should return false and not apply changes if record is invalid" do
+      store.city = "SF"
+      expect(store.valid?).to eq false
       expect(store.save).to eq false
+      expect(store.instance_variable_get('@changes')).to eq({'city' => {from: nil, to: 'SF'} })
+    end
+
+    it "should apply changes and return true if record is valid" do
+      store.city = "San Francisco"
+      expect(store.valid?).to eq true
+      expect(store.instance_variable_get('@changes')).to eq({'city' => {from: nil, to: 'San Francisco'} })
+      expect(store.save).to eq true
+      expect(store.instance_variable_get('@changes')).to eq({})
     end
   end
 

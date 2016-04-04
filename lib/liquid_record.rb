@@ -45,6 +45,8 @@ class LiquidRecord
   end
 
   def initialize type, attributes={}
+    @changes = {}
+
     if type.is_a?(Hash)
       set_attributes(type)
     else
@@ -67,14 +69,18 @@ class LiquidRecord
   end
 
   def save
-    false
+    if valid?
+      @changes = {}
+      true
+    else
+      false
+    end
   end
 
   def method_missing method, *args, &block
     if method =~ /=$/
       var = method.to_s.delete('=')
-      self.singleton_class.class_eval "attr_accessor :#{var}"
-      instance_variable_set("@#{var}", *args)
+      set_attribute(var, *args)
     else
       super
     end
@@ -87,7 +93,13 @@ class LiquidRecord
       end
     end
 
-    def set_attribute method, *value
+    def set_attribute method, value
+      if @changes[method]
+        @changes[method][:to] = value
+      else
+        @changes[method] = {from: nil, to: value}
+      end
+
       self.singleton_class.class_eval "attr_accessor :#{method}"
       instance_variable_set("@#{method}", *value)
     end
