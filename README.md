@@ -78,7 +78,6 @@ LiquidRecord.stores
 Clone Repo and install dependencies
 
 **Run the test suite**
-
 ```console
 rspec spec/
 ```
